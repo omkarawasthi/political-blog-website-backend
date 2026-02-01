@@ -6,12 +6,12 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://omkarawasthi67:4l3UPuxHCvGRcpjW@cluster0.hecomqt.mongodb.net/politics-blog';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/politics-blog';
 
 // Middleware
 app.use(cors(
     {
-        origin: 'https://political-blog-website.vercel.app',
+        origin: ['https://political-blog-website.vercel.app', 'http://localhost:5503', 'http://127.0.0.1:5503'],
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization']

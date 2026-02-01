@@ -1,17 +1,24 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
+const { v2: cloudinary } = require('cloudinary');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const Blog = require('../models/Blog');
 
-// Multer Storage Configuration
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/');
+// Cloudinary Config
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+// Multer Storage Configuration (Cloudinary)
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'politics-blog', // Folder name in Cloudinary
+        allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
     },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
-    }
 });
 
 const upload = multer({ storage: storage });
@@ -45,10 +52,10 @@ router.post('/', upload.single('image'), async (req, res) => {
     try {
         const { title, description, category, date } = req.body;
 
+        // Cloudinary file path handling
         let imagePath = null;
         if (req.file) {
-            // Construct accessible URL
-            imagePath = `http://localhost:5000/uploads/${req.file.filename}`;
+            imagePath = req.file.path; // Cloudinary URL
         }
 
         const newBlog = new Blog({
@@ -62,6 +69,7 @@ router.post('/', upload.single('image'), async (req, res) => {
         const savedBlog = await newBlog.save();
         res.status(201).json(savedBlog);
     } catch (err) {
+        console.error('Error in POST /api/blogs:', err);
         res.status(400).json({ message: err.message });
     }
 });
